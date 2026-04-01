@@ -1,3 +1,5 @@
+"""Disk selection panel for the ArchASP installer UI."""
+
 from textual.app import ComposeResult
 from textual.containers import Vertical
 from textual.message import Message
@@ -36,7 +38,8 @@ class ChooseDisk(Widget):
             self.disk_name = disk_name
 
     @staticmethod
-    def get_disk_options() -> list[tuple[str, str]]:
+    def get_disk_options(
+    ) -> list[tuple[str, str]]:
         """Build Select options from detected block devices."""
         disks = detect_disks()
         options: list[tuple[str, str]] = []
@@ -50,7 +53,9 @@ class ChooseDisk(Widget):
 
         return options
 
-    def compose(self) -> ComposeResult:
+    def compose(
+        self
+    ) -> ComposeResult:
         """Build the floating panel used to select an installation disk."""
         options = self.get_disk_options()
 
@@ -60,8 +65,9 @@ class ChooseDisk(Widget):
 
             if not options:
                 yield Static("No disk detected.", id="disk-label")
+
                 yield Button(
-                    "Close and save",
+                    "Close",
                     id="close-disk-step",
                     variant="default"
                 )
@@ -87,7 +93,7 @@ class ChooseDisk(Widget):
             )
 
             yield Button(
-                "Close and save",
+                "Close",
                 id="close-disk-step",
                 variant="default"
             )
@@ -115,9 +121,9 @@ class ChooseDisk(Widget):
             return
 
         self.selected_disk = str(event.value)
-        self.set_disk_info(f"Disk selected: /dev/{self.selected_disk}")
+        self.set_disk_info(f"Selected disk: /dev/{self.selected_disk}")
         self.set_help_text(
-            f"Selected target disk: /dev/{self.selected_disk}"
+            f"Selected installation target: /dev/{self.selected_disk}"
         )
         self.post_message(self.DiskHighlighted(self.selected_disk))
 

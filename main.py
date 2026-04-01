@@ -30,11 +30,15 @@ class ArchASP(App):
 
     CSS_PATH = "style.tcss"
 
+    # Shared state between installation steps.
     selected_disk: str | None = None
     disk_step_valid: bool = False
     disk_step_open: bool = False
+    partition_step_open: bool = False
 
-    def compose(self) -> ComposeResult:
+    def compose(
+        self
+    ) -> ComposeResult:
         """Build the global application layout.
 
         The layout is made of:
@@ -47,6 +51,8 @@ class ArchASP(App):
 
         with Container(id="app-shell"):
             yield Label("ArchASP Installer", id="title")
+
+            # Floating panels are hidden by default and opened on demand.
 
             yield ChooseDisk(id="disk-float-panel", classes="hidden")
             yield PartitionDisk(id="partition-float-panel", classes="hidden")
@@ -70,7 +76,7 @@ class ArchASP(App):
         yield Footer()
 
     def on_button_pressed(
-            self, event: Button.Pressed
+        self, event: Button.Pressed
     ) -> None:
         """Handle top-level action buttons from the left panel."""
         if event.button.id == "open-disk-step":
@@ -96,7 +102,9 @@ class ArchASP(App):
         command_view = self.query_one(CommandView)
 
         if message.disk_name is None:
-            command_view.set_terminal_output("ready waiting for a command...")
+            command_view.set_terminal_output(
+                "[ready] waiting for a command..."
+            )
             return
 
         command_view.set_terminal_output(
@@ -104,7 +112,7 @@ class ArchASP(App):
         )
 
     @on(ChooseDisk.CloseRequested)
-    def handle_close_requested(
+    def handle_choose_disk_close_requested(
         self, _message: ChooseDisk.CloseRequested
     ) -> None:
         """Close the disk selection floating panel."""
