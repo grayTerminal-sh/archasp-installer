@@ -107,8 +107,8 @@ easier to extend step by step.
 Clone the repository:
 
 ```bash
-git clone <your-repository-url>
-cd archasp
+git clone https://github.com/grayTerminal-sh/archasp-installer
+cd archasp-installer
 ```
 
 Create and activate a virtual environment:
@@ -121,7 +121,7 @@ source .venv/bin/activate
 Install dependencies:
 
 ```bash
-pip install textual
+pip install -r requirements.txt
 ```
 
 ## Run
@@ -129,7 +129,7 @@ pip install textual
 Start the application with:
 
 ```bash
-python main.py
+python3 main.py
 ```
 
 ## Development notes
@@ -169,6 +169,3 @@ For now, the easiest way to contribute is to:
 - improve documentation,
 - propose safer installation flows.
 
-## License
-
-License to be defined.
