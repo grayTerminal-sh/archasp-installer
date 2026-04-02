@@ -20,7 +20,9 @@ class CommandView(Widget):
     the result of inspection or simulation actions.
     """
 
-    def compose(self) -> ComposeResult:
+    def compose(
+        self
+    ) -> ComposeResult:
         """Build the explanation and terminal output areas."""
         with Vertical(id="right-pane"):
             yield Label("Command explanation", id="explain-title")
@@ -39,12 +41,16 @@ class CommandView(Widget):
                     id="terminal-output"
                 )
 
-    def set_explanation(self, markdown: str) -> None:
+    def set_explanation(
+        self, markdown: str
+    ) -> None:
         """Update the Markdown explanation panel."""
         explanation = self.query_one("#command-explanation", Markdown)
         explanation.update(markdown)
 
-    def set_terminal_output(self, content: str) -> None:
+    def set_terminal_output(
+        self, content: str
+    ) -> None:
         """Update the terminal-like output area."""
         terminal = self.query_one("#terminal-output", Static)
         terminal.update(content)
