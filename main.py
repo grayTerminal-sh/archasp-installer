@@ -13,11 +13,17 @@ from textual.app import App, ComposeResult
 from textual.containers import Container, Horizontal, Vertical
 from textual.widgets import Button, Footer, Header, Label
 
-from core.docs import lsblk_explanation
+from core.docs import (
+    lsblk_explanation,
+    btrfs_explanation,
+    preflight_explanation,
+)
 from core.disks import inspect_disk
 from ui.choose_disk import ChooseDisk
 from ui.command_view import CommandView
 from ui.partition_disk import PartitionDisk
+from ui.preflight import PreflightSetup
+from core.system import apply_console_keymap
 
 
 class ArchASP(App):
@@ -35,6 +41,7 @@ class ArchASP(App):
     disk_step_valid: bool = False
     disk_step_open: bool = False
     partition_step_open: bool = False
+    preflight_valid: bool = False
 
     def compose(
         self
@@ -54,6 +61,7 @@ class ArchASP(App):
 
             # Floating panels are hidden by default and opened on demand.
 
+            yield PreflightSetup(id="preflight-float-panel")
             yield ChooseDisk(id="disk-float-panel", classes="hidden")
             yield PartitionDisk(id="partition-float-panel", classes="hidden")
 
@@ -93,6 +101,59 @@ class ArchASP(App):
             panel.remove_class("hidden")
             partition_view.set_disk(self.selected_disk)
             return
+        if not self.preflight_valid:
+            command_view = self.query_one(CommandView)
+            panel = self.query_one("#preflight-float-panel")
+
+            self.preflight_open = True
+            panel.remove_class("hidden")
+            command_view.set_terminal_output(
+                "[warning] Complete the live environment setup first."
+            )
+            return
+
+    @on(PreflightSetup.PreflightCompleted)
+    def handle_preflight_completed(
+        self, message: PreflightSetup.PreflightCompleted
+    ) -> None:
+        """Validate preflight setup and close the startup panel."""
+        panel = self.query_one("#preflight-float-panel")
+        command_view = self.query_one(CommandView)
+
+        success, keymap_result = apply_console_keymap(message.keymap)
+
+        command_view.set_explanation(
+            preflight_explanation(
+                message.keymap,
+                message.network_mode,
+            )
+        )
+
+        if not success:
+            command_view.set_terminal_output(keymap_result)
+            return
+
+        self.preflight_valid = True
+        self.preflight_open = False
+        panel.add_class("hidden")
+
+        if message.network_mode == "iwctl":
+            command_view.set_terminal_output(
+                keymap_result
+                + "\n\n"
+                "root@archiso# iwctl\n"
+                "[iwd]# device list\n"
+                "[iwd]# station DEVICE scan\n"
+                "[iwd]# station DEVICE get-networks\n"
+                "[iwd]# station DEVICE connect SSID"
+            )
+            return
+
+        command_view.set_terminal_output(
+            keymap_result
+            + "\n\n"
+            "[ok] Live environment preflight completed."
+        )
 
     @on(ChooseDisk.DiskHighlighted)
     def handle_disk_highlighted(
@@ -179,8 +240,14 @@ class ArchASP(App):
         This step only shows a preview. No partition is created yet.
         """
         command_view = self.query_one(CommandView)
+        step_button = self.query_one("#open-partition-step", Button)
+        self.partition_step_valid = True
 
+        step_button.label = "Partition disk ✓"
+        step_button.variant = "success"
         command_view.set_explanation(
+            btrfs_explanation()
+            + "\n\n"
             "## Partition simulation\n\n"
             f"Selected disk: `/dev/{message.disk_name}`\n\n"
             f"Selected scheme: `{message.scheme}`\n\n"

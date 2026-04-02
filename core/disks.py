@@ -12,9 +12,10 @@ system information from lsblk.
 
 import json
 import subprocess
+from typing import Any
 
 
-def detect_disks():
+def detect_disks() -> list[dict[str, Any]]:
     """Detect available block devices and return disk-level entries only.
 
     The returned list is normalized for UI usage and contains only
@@ -33,21 +34,23 @@ def detect_disks():
     for device in data["blockdevices"]:
         if device["type"] == "disk":
             disks.append({
-                "name": device.get("name", "unknow"),
-                "size": device.get("size", "unknow"),
-                "model": device.get("model") or "unknow model",
-                "tran": device.get("tran") or "unknow tran",
+                "name": device.get("name", "unknown"),
+                "size": device.get("size", "unknown"),
+                "model": device.get("model") or "unknown model",
+                "tran": device.get("tran") or "unknown tran",
             })
 
     return disks
 
 
-def format_disks(disks):
+def format_disks(
+    disks: list[dict[str, Any]]
+) -> str:
     """Format detected disks as a human-readable multiline string."""
     if not disks:
         return "No disks detected."
 
-    lines = ["Disks detected :"]
+    lines = ["Disks detected:"]
 
     for disk in disks:
         lines.append(
@@ -58,7 +61,9 @@ def format_disks(disks):
     return "\n".join(lines)
 
 
-def inspect_disk(disk_name: str) -> str:
+def inspect_disk(
+    disk_name: str
+) -> str:
     """Inspect a selected disk with lsblk and return terminal-like output."""
     command = [
         "lsblk",
@@ -90,7 +95,9 @@ def inspect_disk(disk_name: str) -> str:
     return content
 
 
-def get_disk_size_bytes(disk_name: str) -> int:
+def get_disk_size_bytes(
+    disk_name: str
+) -> int:
     """Return the exact size of a disk in bytes.
 
     This function is used by the partition simulation step to compute

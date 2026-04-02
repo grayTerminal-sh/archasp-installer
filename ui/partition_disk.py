@@ -13,12 +13,6 @@ from textual.message import Message
 from textual.widget import Widget
 from textual.widgets import Button, Label, Select, Static
 
-from core.disks import get_disk_size_bytes
-from core.partitioning import (
-    render_partition_plan,
-    simulate_partition_layout,
-)
-
 
 class PartitionDisk(Widget):
     """Floating widget used to simulate a partitioning plan."""
@@ -32,7 +26,6 @@ class PartitionDisk(Widget):
 
         def __init__(self, disk_name: str, scheme: str, preview: str) -> None:
             """Store the simulated partition preview details."""
-
             super().__init__()
             self.disk_name = disk_name
             self.scheme = scheme
@@ -52,20 +45,22 @@ class PartitionDisk(Widget):
             yield Select(
                 options=[
                     (
-                        "UEFI simple | EFI + root",
-                        "uefi-simple"
+                        "UEFI simple (Btrfs) | EFI + Btrfs root (@)",
+                        "uefi-simple",
                     ),
                     (
-                        "UEFI standard | EFI + swap + root",
-                        "uefi-standard"
+                        "UEFI standard (Btrfs) | EFI + Btrfs root (@) +"
+                        " home (@home)",
+                        "uefi-standard",
                     ),
                     (
-                        "UEFI complete | EFI + swap + root + home",
-                        "uefi-complete"
+                        "UEFI complete (Btrfs) | EFI + Btrfs root (@) +"
+                        " home (@home) + snapshots (@snapshots)",
+                        "uefi-complete",
                     ),
                     (
-                        "Manual",
-                        "manual"
+                        "Manual layout (no automatic plan)",
+                        "manual",
                     ),
                 ],
                 prompt="Choose a partitioning scheme",
@@ -153,18 +148,29 @@ class PartitionDisk(Widget):
             self.set_preview("You must select a partitioning scheme first.")
             return
 
-        disk_size_bytes = get_disk_size_bytes(self.selected_disk)
-        plan = simulate_partition_layout(
-            disk_size_bytes,
-            self.selected_scheme
+        preview = (
+            "| Entry       | Type         |"
+            " Backing storage     | Mount       |\n"
+            "|-------------|--------------|"
+            "---------------------|-------------|\n"
+            "| EFI         | fat32        |"
+            " dedicated partition | /boot/efi   |\n"
+            "| BTRFS pool  | btrfs        |"
+            " dedicated partition | shared pool |\n"
+            "| @           | btrfs-subvol |"
+            " shared BTRFS space  | /           |\n"
+            "| @home       | btrfs-subvol |"
+            " shared BTRFS space  | /home       |\n"
+            "| @snapshots  | btrfs-subvol |"
+            " shared BTRFS space  | /.snapshots |\n\n"
+            "This is a Btrfs-based layout."
+            "It uses one EFI partition and one main "
+            "Btrfs partition.\n\n"
+            "The subvolumes share"
+            "the space of the main Btrfs filesystem by default.\n"
+            "They do not have fixed sizes unless quotas are configured.\n\n"
+            "No change has been applied yet."
         )
-        preview = render_partition_plan(
-            self.selected_disk,
-            disk_size_bytes,
-            self.selected_scheme,
-            plan
-        )
-
         self.set_preview(preview)
         self.post_message(
             self.SimulationRequested(
@@ -173,3 +179,4 @@ class PartitionDisk(Widget):
                 preview
             )
         )
+        self.post_message(self.CloseRequested())

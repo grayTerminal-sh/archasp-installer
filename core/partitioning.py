@@ -41,46 +41,113 @@ def simulate_partition_layout(
     """Build a simulated partition layout for a selected scheme.
 
     Supported schemes:
-    - ``uefi-simple``: EFI + root
-    - ``uefi-standard``: EFI + swap + root
-    - ``uefi-complete``: EFI + swap + root + home
+    - ``uefi-simple``: EFI + Btrfs root (@ only)
+    - ``uefi-standard``: EFI + Btrfs root + home (@, @home)
+    - ``uefi-complete``: EFI + Btrfs root + home + snapshots
+      (@, @home, @snapshots)
     - ``manual``: no automatic plan
     """
     efi_size = 512 * MIB
-    swap_size = 2 * GIB
     home_size = 20 * GIB
 
     if disk_size_bytes <= efi_size:
         return []
 
     if scheme == "uefi-simple":
-        root_size = disk_size_bytes - efi_size
+        btrfs_size = disk_size_bytes - efi_size
         return [
-            PartitionPlanItem("EFI", efi_size, "fat32", "/boot/efi"),
-            PartitionPlanItem("root", root_size, "ext4", "/"),
+            PartitionPlanItem(
+                "EFI",
+                efi_size,
+                "fat32",
+                "/boot/efi"
+            ),
+            PartitionPlanItem(
+                "BTRFS",
+                btrfs_size,
+                "btrfs",
+                "/"
+            ),
+            PartitionPlanItem(
+                "@",
+                btrfs_size,
+                "btrfs-subvol",
+                "/"
+            ),
         ]
 
     if scheme == "uefi-standard":
-        root_size = disk_size_bytes - efi_size - swap_size
-        if root_size <= 0:
+        btrfs_size = disk_size_bytes - efi_size
+        if btrfs_size <= 0:
             return []
 
         return [
-            PartitionPlanItem("EFI", efi_size, "fat32", "/boot/efi"),
-            PartitionPlanItem("swap", swap_size, "linux-swap", "swap"),
-            PartitionPlanItem("root", root_size, "ext4", "/"),
+            PartitionPlanItem(
+                "EFI",
+                efi_size,
+                "fat32",
+                "/boot/efi"
+            ),
+            PartitionPlanItem(
+                "BTRFS",
+                btrfs_size,
+                "btrfs",
+                "/"
+            ),
+            PartitionPlanItem(
+                "@",
+                btrfs_size - home_size,
+                "btrfs-subvol",
+                "/"
+            ),
+            PartitionPlanItem(
+                "@home",
+                home_size,
+                "btrfs-subvol",
+                "/home"
+            ),
         ]
 
     if scheme == "uefi-complete":
-        root_size = disk_size_bytes - efi_size - swap_size - home_size
+        btrfs_size = disk_size_bytes - efi_size
+        if btrfs_size <= 0:
+            return []
+
+        root_size = btrfs_size - home_size
         if root_size <= 0:
             return []
 
         return [
-            PartitionPlanItem("EFI", efi_size, "fat32", "/boot/efi"),
-            PartitionPlanItem("swap", swap_size, "linux-swap", "swap"),
-            PartitionPlanItem("root", root_size, "ext4", "/"),
-            PartitionPlanItem("home", home_size, "ext4", "/home"),
+            PartitionPlanItem(
+                "EFI",
+                efi_size,
+                "fat32",
+                "/boot/efi"
+            ),
+            PartitionPlanItem(
+                "BTRFS",
+                btrfs_size,
+                "btrfs",
+                "/"
+            ),
+            PartitionPlanItem(
+                "@",
+                root_size,
+                "btrfs-subvol",
+                "/"
+            ),
+            PartitionPlanItem(
+                "@home",
+                home_size,
+                "btrfs-subvol",
+                "/home"
+            ),
+            PartitionPlanItem(
+                "@snapshots",
+                root_size,
+                "btrfs-subvol",
+                "/.snapshots"
+            ),
         ]
 
     return []
@@ -112,6 +179,7 @@ def render_partition_plan(
         f"## Partition simulation for /dev/{disk_name}",
         "",
         f"Disk size: {format_size(disk_size_bytes)}",
+        "Filesystem: Btrfs",
         f"Selected scheme: {scheme}",
         "",
         "| Partition | Size | FS | Mount |",
@@ -125,5 +193,11 @@ def render_partition_plan(
         )
 
     lines.append("")
+    lines.append(
+        "This is a Btrfs-based layout. It uses a single Btrfs partition\n"
+        "with subvolumes for `/`, `/home`, and optional snapshots."
+    )
+    lines.append("")
     lines.append("No change has been applied yet.")
+
     return "\n".join(lines)

@@ -16,3 +16,4 @@ venv/
 !/core/
 !/ui/
 !/requirements.txt
+!/style.tcss

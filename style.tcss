@@ -1,0 +1,120 @@
+
+Screen {
+  background: #0b0f14;
+}
+
+#app-shell {
+  width: 100%;
+  height: 1fr;
+  background: #11161d;
+  align: center middle;
+}
+
+Horizontal {
+  width: 100%;
+}
+
+#left-panel {
+  width:50%;
+  height: 1fr;
+  background: #11161d;
+  border: wide $surface;
+}
+
+#terminal-title,
+#explain-title {
+  border: wide $surface;
+}
+
+Button,
+Select,
+Label,
+Static,
+#title,
+#find-disk,
+#terminal-title,
+#section-title,
+#run-select-disk,
+#explain-title, 
+#open-disk-step,
+#close-disk-step,
+#float-title,
+#partition-title {
+  width: 100%;
+  content-align: center middle;
+}
+
+#run-select-disk,
+#open-disk-step,
+#close-disk-step,
+#open-partition-step {
+  margin-right: 15;
+  margin-left: 15;
+}
+
+#disk-info,
+#disk-help,
+#partition-preview,
+#disk-label {
+    color: #e2e8f0;
+}
+
+#terminal-output {
+  content-align: left top;
+  color: green;
+}
+
+#right-pane {
+  width: 1fr;
+  height: 1fr;
+}
+
+#right-pane-explanation {
+  width: 100%;
+  height: 8;
+}
+
+#right-pane-terminal {
+  width: 100%;
+  height: 1fr;
+}
+
+#right-pane-explanation,
+#right-pane-terminal {
+  scrollbar-size-vertical: 1;
+}
+
+#partition-float-panel,
+#disk-float-panel {
+    layer: overlay;
+    width: 80;
+    height: 30;
+    border: wide $surface;
+    background: #101722;
+}
+
+#command-view {
+    width: 1fr;
+    height: 1fr;
+}
+
+#command-view #right-pane {
+    width: 100%;
+    height: 100%;
+}
+
+#command-view #right-pane-explanation {
+    height: 1fr;
+    border: wide $surface;
+}
+
+#command-view #right-pane-terminal {
+    height: 1fr;
+    border: wide $surface;
+}
+
+.hidden {
+    display: none;
+}
+
+
