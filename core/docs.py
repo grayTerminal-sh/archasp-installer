@@ -91,3 +91,15 @@ def btrfs_explanation() -> str:
         "These defaults aim for a good balance between safety,"
         "performance, and ease of administration.\n"
     )
+
+
+def pacstrap_explanation() -> str:
+    """Return explanation text for the base system installation step."""
+    return (
+        "## Base system installation\n\n"
+        "`pacstrap` installs the base Arch Linux system into `/mnt`.\n\n"
+        "This step installs the minimum packages required to boot the new "
+        "system, typically `base`, `linux`, and `linux-firmware`.\n\n"
+        "After that, `genfstab -U /mnt` generates `/mnt/etc/fstab` from the "
+        "filesystems currently mounted under `/mnt`."
+    )

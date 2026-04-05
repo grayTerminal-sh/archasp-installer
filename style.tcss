@@ -26,7 +26,6 @@ Horizontal {
   border: wide $surface;
 }
 
-Button,
 Select,
 Label,
 Static,
@@ -47,7 +46,12 @@ Static,
 #run-select-disk,
 #open-disk-step,
 #close-disk-step,
-#open-partition-step {
+#open-partition-step,
+#confirm-preflight,
+#confirm-partition-apply,
+#apply-btrfs-layout-step,
+#open-install-system-step,
+#open-localization-step {
   margin-right: 15;
   margin-left: 15;
 }
@@ -85,13 +89,24 @@ Static,
 }
 
 #partition-float-panel,
-#disk-float-panel {
+#disk-float-panel,
+#preflight-float-panel,
+#localization-float-panel {
     layer: overlay;
     width: 80;
     height: 30;
-    border: wide $surface;
+    border: wide #7B6897;
     background: #101722;
 }
+
+#confirm-partition-float-panel {
+    layer: overlay;
+    width: 80;
+    height: 37;
+    border: wide #7B6897;
+    background: #101722;
+}
+
 
 #command-view {
     width: 1fr;
